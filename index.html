@@ -729,18 +729,12 @@ document.getElementById('frm').addEventListener('submit',async e=>{
   btn.disabled=true;
   const d={mazmin:getMaz(),sugTiud:document.querySelector('[name=sug]:checked')?.value,matara:document.querySelector('[name=mat]:checked')?.value,teur:document.getElementById('teur').value.trim(),tarihMiluy:document.getElementById('tm').value,tarihPeula:document.getElementById('tp').value,shaat:document.getElementById('sh').value,makom:document.getElementById('mk').value.trim(),ish:document.getElementById('ish').value.trim(),degashim:document.getElementById('dg').value.trim(),email:document.getElementById('em').value.trim(),ts:new Date().toISOString()};
   const saved=JSON.parse(localStorage.getItem('tiud')||'[]');saved.push(d);localStorage.setItem('tiud',JSON.stringify(saved));
-  try{await fetch('https://docs.google.com/forms/d/e/1FAIpQLSeKrQepD3GUj8YI69Ob3Y-dLbz8XM1r8qw4UEBgc36b5PRO2w/formResponse',{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({
-        'entry.1590139752': d.mazmin,
-        'entry.889349391':  d.sugTiud,
-        'entry.655326089':  d.matara,
-        'entry.2114497774': d.teur,
-        'entry.317125525':  d.tarihMiluy,
-        'entry.1270699528': d.tarihPeula,
-        'entry.426444341':  d.shaat,
-        'entry.1810560002': d.makom,
-        'entry.900280859':  d.ish,
-        'entry.1900386461': d.degashim
-      }).toString()});}catch{}
+  try{await fetch('https://script.google.com/macros/s/AKfycbzXT_3Yzay3Z2327Vl8yyCOfh21HV-cI4UpySZ6Wq_Fh6UbpqGXuKkKLtfzIrIxnCPUDQ/exec',{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(d)
+    });}catch{}
   btn.disabled=false;document.getElementById('subTxt').style.display='';document.getElementById('spinEl').style.display='none';
   document.getElementById('overlay').classList.add('on');
 });
