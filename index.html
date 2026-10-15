@@ -779,13 +779,38 @@ document.getElementById('frm').addEventListener('submit',async e=>{
   btn.disabled=true;
   const d={mazmin:getMaz(),sugTiud:document.querySelector('[name=sug]:checked')?.value,matara:document.querySelector('[name=mat]:checked')?.value,teur:document.getElementById('teur').value.trim(),tarihMiluy:document.getElementById('tm').value,tarihPeula:document.getElementById('tp').value,shaat:document.getElementById('sh').value,makom:document.getElementById('mk').value.trim(),ish:document.getElementById('ish').value.trim(),degashim:document.getElementById('dg').value.trim(),email:document.getElementById('em').value.trim(),ts:new Date().toISOString()};
   const saved=JSON.parse(localStorage.getItem('tiud')||'[]');saved.push(d);localStorage.setItem('tiud',JSON.stringify(saved));
-  try{await fetch('https://script.google.com/macros/s/AKfycbzXT_3Yzay3Z2327Vl8yyCOfh21HV-cI4UpySZ6Wq_Fh6UbpqGXuKkKLtfzIrIxnCPUDQ/exec',{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});}catch{}
+  await Promise.allSettled([
+    fetch('https://script.google.com/macros/s/AKfycbzXT_3Yzay3Z2327Vl8yyCOfh21HV-cI4UpySZ6Wq_Fh6UbpqGXuKkKLtfzIrIxnCPUDQ/exec',{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}),
+    sendToPool(d)
+  ]);
   btn.disabled=false;document.getElementById('subTxt').style.display='';document.getElementById('spinEl').style.display='none';
   document.getElementById('overlay').classList.add('on');
   showSummary(d);
 });
 
 
+
+// ===== שליחה לבריכת הבקשות של מערכת סידור העבודה =====
+// אותם projectId ו-apiKey כמו ב-index.html של מערכת סידור העבודה
+const POOL_FB = { projectId: 'sidor-634f6', apiKey: 'AIzaSyDxtWroN91oD-3E4Z6_1uYX0r4Skf2u7Yg' };
+const POOL_KIND = {'וידאו':'video','סטילס':'stills','עריכה':'edit','אייטם מלא (וידאו + סטילס)':'full'};
+async function sendToPool(d){
+  if (POOL_FB.apiKey.startsWith('PASTE')) return;
+  const s = v => ({ stringValue: String(v || '') });
+  const first = (d.teur || '').split('\n')[0];
+  const fields = {
+    title: s(first.length > 70 ? first.slice(0, 68) + '…' : first), description: s(d.teur),
+    kind: s(POOL_KIND[d.sugTiud] || 'other'), kindLabel: s(d.sugTiud), purpose: s(d.matara),
+    requester: s(d.mazmin), contact: s(d.ish), date: s(d.tarihPeula), start: s(d.shaat),
+    location: s(d.makom), notes: s(d.degashim), email: s(d.email), filledDate: s(d.tarihMiluy),
+    source: s('form'), status: s('pending'), createdAt: { integerValue: String(Date.now()) }
+  };
+  try {
+    await fetch('https://firestore.googleapis.com/v1/projects/' + POOL_FB.projectId +
+      '/databases/(default)/documents/sched_requests?key=' + POOL_FB.apiKey,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fields }) });
+  } catch (e) {}
+}
 
 // Store last submission data
 let lastSubmission = {};
